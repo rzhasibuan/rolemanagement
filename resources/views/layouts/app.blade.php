@@ -33,15 +33,21 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
+                        @role('superadmin')
                         <li class="nav-item">
                             <a href="{{ route('admin.user.index') }}" class="nav-link">User</a>
                         </li>
-                        <li>
+                        <li class="nav-item">
                             <a href="{{ route('admin.permission.index') }}" class="nav-link">Permission</a>
                         </li>
-                        <li>
+                        <li class="nav-item">
                             <a href="{{ route('admin.role.index') }}" class="nav-link">Role</a>
                         </li>
+                        @endrole
+                        <li class="nav-item">
+                            <a href="{{ route('article.index') }}" class="nav-link">Article</a>
+                        </li>
+                        
                     </ul>
 
                     <!-- Right Side Of Navbar -->

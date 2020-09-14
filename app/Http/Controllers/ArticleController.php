@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Article;
+use App\Traits\FlashAlert;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
+    use FlashAlert;
+
     /**
      * Display a listing of the resource.
      *
@@ -13,7 +18,8 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        //
+        $articles = Article::orderBy('id','desc')->paginate(10);
+        return view('pages.article.index', compact('articles'));
     }
 
     /**
@@ -23,7 +29,7 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        //
+        return view('pages.article.create');
     }
 
     /**
@@ -34,7 +40,14 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string',],
+        ]);
+
+        request()->user()->articles()->create($request->all());
+
+        return redirect()->route('article.index')->with($this->alertCreated());
     }
 
     /**
@@ -56,7 +69,23 @@ class ArticleController extends Controller
      */
     public function edit($id)
     {
-        //
+        try {
+            $article = Article::findOrFail($id);
+
+            // cek permission 
+            // jika memiliki role superadmin dan role admin 
+            // atau jika user yang aktif memiliki permission update-article 
+            if(request()->user()->hasRole(['superadmin','admin']) || request()->user()->isAbleToAndOwns('articles-update', $article) )
+            {
+                return view('pages.article.edit',compact('article'));
+            }else{
+                return redirect()->route('article.index')->with($this->permissionDenied());
+            }
+
+            // return view('pages.article.edit', compact('article'));
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('article.index')->with($this->alertNotFound());
+        }
     }
 
     /**
@@ -68,7 +97,30 @@ class ArticleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $article = Article::findOrFail($id);
+            // cek permission 
+            // jika memiliki role superadmin dan role admin 
+            // atau jika user yang aktif memiliki permission update-article 
+            if(request()->user()->hasRole(['superadmin','admin']) || request()->user()->isAbleToAndOwns('articles-update', $article) )
+            {
+                $this->validate($request, [
+                    'title' => ['required', 'string', 'max:255'],
+                    'body' => ['required', 'string',],
+                    // 'published' => ['required'],
+                ]);
+    
+                $article->update($request->all());
+    
+                return redirect()->route('article.index')->with($this->alertUpdated());
+
+            }else{
+                return redirect()->route('article.index')->with($this->permissionDenied());
+            }
+           
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('article.index')->with($this->alertNotFound());
+        }
     }
 
     /**
@@ -79,6 +131,21 @@ class ArticleController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $article = Article::findOrFail($id);
+            if(request()->user()->hasRole(['superadmin']) || request()->user()->isAbleToAndOwns('articles-delete', $article) )
+            {
+                $article->delete();
+
+                return redirect()->route('article.index')->with($this->alertDeleted());
+
+            }else{
+                return redirect()->route('article.index')->with($this->permissionDenied());
+            }
+
+            
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('article.index')->with($this->alertNotFound());
+        }
     }
 }
