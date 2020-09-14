@@ -25,5 +25,6 @@ Route::name('admin.')->prefix('admin')->namespace('Admin')
             ->middleware(['auth','role:superadmin'])
             ->group(function() {
                 Route::resource('user','UserController');
+                Route::resource('permission','PermissionController');
             });
             

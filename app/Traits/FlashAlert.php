@@ -12,7 +12,7 @@ trait FlashAlert
         ];
     }
     
-    public function alertUpdate()
+    public function alertUpdated()
     {
         return [
             'type' => 'success',
