@@ -21,10 +21,11 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::name('admin.')
-->prefix('admin') 
-->namespace('Admin')
- ->middleware(['auth','role:superadmin'])
+Route::name('admin.') //pemberian nama seperti admin.user.index
+->prefix('admin')  // berfungsi untuk menambahkan url menjadi group seperti https://domainku.com/admin/article dan jika tidak mengunakan prefix maka urlnya akan seperti https://domaninku.com/article
+
+->namespace('Admin') // namaspace atau folder dari directory controller admin
+ ->middleware(['auth','role:superadmin']) // middleware yang boleh akses controller ini 
   ->group(function() {
          Route::resource('user','UserController');
          Route::resource('permission','PermissionController');

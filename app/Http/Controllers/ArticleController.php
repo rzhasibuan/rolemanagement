@@ -18,8 +18,14 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::orderBy('id','desc')->paginate(10);
-        return view('pages.article.index', compact('articles'));
+
+        if(request()->user()->hasRole(['superadmin','admin'])){
+                    $articles = Article::orderBy('id','desc')->paginate(10);
+        }else{
+            $articles = Article::where('user_id',request()->user()->id)->orderBy('id','desc')->paginate(10);
+        }
+        return view('pages.article.index', compact('articles'));     
+        // return request()->user()->id;
     }
 
     /**
@@ -29,7 +35,11 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        return view('pages.article.create');
+        if(request()->user()->hasRole(['superadmin','user']) || request()->user()->isAbleTo('articles-create') ){
+            return view('pages.article.create');
+        }else{
+            return redirect()->route('article.index')->with($this->permissionDenied());
+        }
     }
 
     /**
@@ -82,6 +92,11 @@ class ArticleController extends Controller
                 return redirect()->route('article.index')->with($this->permissionDenied());
             }
 
+            // return request()->user()->isAbleToAndOwns('articles-update',$article); =1
+            // return request()->user()->hasRole(['superadmin']); =1
+            // return request()->user()->hasRole('admin'); = 1
+            // return request()->user()->isAbleTo('edit-user');
+            
             // return view('pages.article.edit', compact('article'));
         } catch (ModelNotFoundException $e) {
             return redirect()->route('article.index')->with($this->alertNotFound());
